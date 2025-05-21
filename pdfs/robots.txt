@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://eticlla21.github.io/enpdf/sitemap.xml 
