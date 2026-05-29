@@ -1,0 +1,753 @@
+<!doctype html>
+<html lang="es" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Constructor Visual de Cursos para Blogger</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+  <style>
+* { font-family: 'DM Sans', sans-serif; }
+code, .mono { font-family: 'JetBrains Mono', monospace; }
+html, body { height: 100%; margin: 0; }
+.app-wrapper { height: 100%; width: 100%; overflow: auto; }
+.tab-active { border-bottom: 3px solid var(--primary); color: var(--primary); font-weight: 600; }
+.block-card { transition: all 0.2s ease; border-left: 4px solid var(--primary); }
+.block-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+.editor-toolbar button { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 4px; transition: background 0.15s; }
+.editor-toolbar button:hover { background: #e5e7eb; }
+.editor-content { min-height: 200px; outline: none; padding: 16px; }
+.editor-content h1 { font-size: 1.5rem; font-weight: 700; margin: 0.5em 0; }
+.editor-content h2 { font-size: 1.25rem; font-weight: 600; margin: 0.5em 0; }
+.editor-content h3 { font-size: 1.1rem; font-weight: 600; margin: 0.5em 0; }
+.editor-content ul { list-style: disc; padding-left: 1.5rem; }
+.editor-content ol { list-style: decimal; padding-left: 1.5rem; }
+.editor-content table { border-collapse: collapse; width: 100%; margin: 1em 0; }
+.editor-content table td, .editor-content table th { border: 1px solid #d1d5db; padding: 8px; }
+.editor-content .info-box { background: #dbeafe; border-left: 4px solid #2563eb; padding: 12px; margin: 1em 0; border-radius: 4px; }
+.editor-content .warning-box { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 12px; margin: 1em 0; border-radius: 4px; }
+.editor-content img { max-width: 100%; border-radius: 8px; margin: 1em 0; }
+.preview-frame { background: white; border-radius: 12px; box-shadow: 0 2px 20px rgba(0,0,0,0.06); }
+.fade-in { animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.toggle-switch { width: 44px; height: 24px; border-radius: 12px; position: relative; cursor: pointer; transition: background 0.2s; }
+.toggle-switch::after { content: ''; width: 20px; height: 20px; border-radius: 50%; background: white; position: absolute; top: 2px; left: 2px; transition: transform 0.2s; }
+.toggle-switch.active { background: var(--primary); }
+.toggle-switch.active::after { transform: translateX(20px); }
+.code-output { max-height: 400px; overflow: auto; }
+:root { --primary: #2563eb; }
+</style>
+  <style>body { box-sizing: border-box; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+ <script src="/_sdk/telemetry_sdk.js"></script></head>
+ <body class="h-full bg-gray-50">
+  <div class="app-wrapper flex flex-col" id="app">
+   <!-- Header -->
+   <header class="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shrink-0">
+    <div class="flex items-center gap-3">
+     <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: var(--primary);">
+      <i data-lucide="layout-dashboard" class="w-5 h-5 text-white"></i>
+     </div>
+     <div>
+      <h1 class="text-lg font-bold text-gray-900" id="appTitle">Constructor Visual de Cursos</h1>
+      <p class="text-xs text-gray-500">Para Blogger</p>
+     </div>
+    </div>
+    <div class="flex items-center gap-2">
+     <button onclick="saveProject()" class="px-3 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg flex items-center gap-2 transition"> <i data-lucide="save" class="w-4 h-4"></i> Guardar </button> <button onclick="loadProject()" class="px-3 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg flex items-center gap-2 transition"> <i data-lucide="upload" class="w-4 h-4"></i> Cargar </button>
+    </div>
+   </header><!-- Tabs -->
+   <nav class="bg-white border-b border-gray-200 px-6 flex gap-1 shrink-0">
+    <button onclick="switchTab(0)" class="tab-btn px-4 py-3 text-sm text-gray-600 hover:text-gray-900 transition tab-active" data-tab="0"> <span class="flex items-center gap-2"><i data-lucide="settings" class="w-4 h-4"></i> Datos Generales</span> </button> <button onclick="switchTab(1)" class="tab-btn px-4 py-3 text-sm text-gray-600 hover:text-gray-900 transition" data-tab="1"> <span class="flex items-center gap-2"><i data-lucide="layers" class="w-4 h-4"></i> Contenido</span> </button> <button onclick="switchTab(2)" class="tab-btn px-4 py-3 text-sm text-gray-600 hover:text-gray-900 transition" data-tab="2"> <span class="flex items-center gap-2"><i data-lucide="sliders" class="w-4 h-4"></i> Avanzado</span> </button> <button onclick="switchTab(3)" class="tab-btn px-4 py-3 text-sm text-gray-600 hover:text-gray-900 transition" data-tab="3"> <span class="flex items-center gap-2"><i data-lucide="code" class="w-4 h-4"></i> Generar Código</span> </button>
+   </nav><!-- Main Content -->
+   <main class="flex-1 overflow-hidden flex">
+    <!-- Tab 0: Datos Generales -->
+    <div class="tab-panel p-6" data-panel="0">
+     <div class="max-w-4xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div class="space-y-5">
+       <h2 class="text-xl font-bold text-gray-900 flex items-center gap-2"><i data-lucide="file-text" class="w-5 h-5"></i> Configuración del Curso</h2>
+       <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Título del curso</label> <input type="text" id="courseTitle" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none" placeholder="Ej: Curso de Excel" oninput="updatePreviewGeneral()">
+       </div>
+       <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Subtítulo</label> <input type="text" id="courseSubtitle" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none" placeholder="Ej: Desde cero a avanzado" oninput="updatePreviewGeneral()">
+       </div>
+       <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Instructor</label> <input type="text" id="courseInstructor" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none" placeholder="Ej: Juan Pérez" oninput="updatePreviewGeneral()">
+       </div>
+       <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Imagen principal (URL)</label> <input type="text" id="courseImage" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none" placeholder="https://..." oninput="updatePreviewGeneral()">
+       </div>
+       <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Color principal</label>
+        <div class="flex items-center gap-3">
+         <input type="color" id="courseColor" value="#2563eb" class="w-12 h-10 rounded cursor-pointer border-0" oninput="updateColor()"> <input type="text" id="courseColorText" value="#2563eb" class="w-32 px-3 py-2.5 border border-gray-300 rounded-lg text-sm mono" oninput="updateColorFromText()">
+        </div>
+       </div>
+       <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Texto del botón de inscripción</label> <input type="text" id="courseBtnText" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none" placeholder="Ej: Inscribirme ahora" value="Inscribirme ahora" oninput="updatePreviewGeneral()">
+       </div>
+       <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">URL del botón</label> <input type="text" id="courseBtnUrl" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none" placeholder="https://...">
+       </div>
+      </div><!-- Preview -->
+      <div>
+       <h3 class="text-sm font-medium text-gray-500 mb-3">Vista previa</h3>
+       <div class="preview-frame p-6 border border-gray-200" id="generalPreview">
+        <div class="text-center">
+         <div id="prevImage" class="w-full h-40 bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl mb-4 flex items-center justify-center">
+          <i data-lucide="book-open" class="w-12 h-12 text-white opacity-60"></i>
+         </div>
+         <h2 id="prevTitle" class="text-2xl font-bold text-gray-900">Título del Curso</h2>
+         <p id="prevSubtitle" class="text-gray-500 mt-1">Subtítulo del curso</p>
+         <p id="prevInstructor" class="text-sm text-gray-400 mt-2">Instructor: —</p><button id="prevBtn" class="mt-4 px-6 py-2.5 text-white rounded-lg font-medium" style="background: var(--primary);">Inscribirme ahora</button>
+        </div>
+       </div>
+      </div>
+     </div>
+    </div><!-- Tab 1: Contenido -->
+    <div class="tab-panel p-6 hidden" data-panel="1">
+     <div class="max-w-5xl mx-auto">
+      <div class="flex items-center justify-between mb-6">
+       <h2 class="text-xl font-bold text-gray-900">Constructor de Contenido</h2>
+      </div><!-- Add Buttons -->
+      <div class="flex flex-wrap gap-2 mb-6 p-4 bg-white rounded-xl border border-gray-200">
+       <button onclick="addBlock('intro')" class="px-4 py-2 bg-blue-50 text-blue-700 rounded-lg text-sm font-medium hover:bg-blue-100 transition flex items-center gap-2"> <i data-lucide="play-circle" class="w-4 h-4"></i> Añadir Introducción </button> <button onclick="addBlock('module')" class="px-4 py-2 bg-emerald-50 text-emerald-700 rounded-lg text-sm font-medium hover:bg-emerald-100 transition flex items-center gap-2"> <i data-lucide="book" class="w-4 h-4"></i> Añadir Módulo </button> <button onclick="addBlock('resource')" class="px-4 py-2 bg-purple-50 text-purple-700 rounded-lg text-sm font-medium hover:bg-purple-100 transition flex items-center gap-2"> <i data-lucide="download" class="w-4 h-4"></i> Añadir Recurso Extra </button> <button onclick="addBlock('evaluation')" class="px-4 py-2 bg-amber-50 text-amber-700 rounded-lg text-sm font-medium hover:bg-amber-100 transition flex items-center gap-2"> <i data-lucide="clipboard-check" class="w-4 h-4"></i> Añadir Evaluación Final </button>
+      </div><!-- Blocks Container -->
+      <div id="blocksContainer" class="space-y-4">
+       <div class="text-center py-16 text-gray-400">
+        <i data-lucide="layers" class="w-12 h-12 mx-auto mb-3 opacity-50"></i>
+        <p class="text-lg">Comienza añadiendo bloques a tu curso</p>
+        <p class="text-sm">Usa los botones de arriba para crear la estructura</p>
+       </div>
+      </div>
+     </div>
+    </div><!-- Tab 2: Vista Previa -->
+    <div class="tab-panel p-6 hidden" data-panel="2">
+     <div class="max-w-4xl mx-auto">
+      <div class="flex items-center justify-between mb-4">
+       <h2 class="text-xl font-bold text-gray-900">Previsualización</h2><span class="text-xs text-gray-400">Cómo se verá en Blogger</span>
+      </div>
+      <div class="preview-frame border border-gray-200 p-8" id="livePreview">
+       <p class="text-center text-gray-400">Agrega contenido para ver la vista previa</p>
+      </div>
+     </div>
+    </div><!-- Tab 3: Avanzado -->
+    <div class="tab-panel p-6 hidden" data-panel="3">
+     <div class="max-w-2xl mx-auto space-y-6">
+      <h2 class="text-xl font-bold text-gray-900">Configuración Avanzada</h2>
+      <div class="bg-white rounded-xl border border-gray-200 divide-y divide-gray-100">
+       <div class="flex items-center justify-between p-4">
+        <div>
+         <p class="font-medium text-gray-900">Modo oscuro</p>
+         <p class="text-xs text-gray-500">Tema oscuro para el curso</p>
+        </div>
+        <div class="toggle-switch bg-gray-300" data-option="darkMode" onclick="toggleOption(this)"></div>
+       </div>
+       <div class="flex items-center justify-between p-4">
+        <div>
+         <p class="font-medium text-gray-900">Barra de progreso</p>
+         <p class="text-xs text-gray-500">Muestra el avance del estudiante</p>
+        </div>
+        <div class="toggle-switch bg-gray-300" data-option="progressBar" onclick="toggleOption(this)"></div>
+       </div>
+       <div class="flex items-center justify-between p-4">
+        <div>
+         <p class="font-medium text-gray-900">Menú lateral</p>
+         <p class="text-xs text-gray-500">Navegación por módulos</p>
+        </div>
+        <div class="toggle-switch bg-gray-300" data-option="sideMenu" onclick="toggleOption(this)"></div>
+       </div>
+       <div class="flex items-center justify-between p-4">
+        <div>
+         <p class="font-medium text-gray-900">Guardar avance</p>
+         <p class="text-xs text-gray-500">Progreso guardado en navegador</p>
+        </div>
+        <div class="toggle-switch bg-gray-300" data-option="saveProgress" onclick="toggleOption(this)"></div>
+       </div>
+       <div class="flex items-center justify-between p-4">
+        <div>
+         <p class="font-medium text-gray-900">Animaciones</p>
+         <p class="text-xs text-gray-500">Transiciones al navegar</p>
+        </div>
+        <div class="toggle-switch bg-gray-300 active" data-option="animations" onclick="toggleOption(this)"></div>
+       </div>
+       <div class="flex items-center justify-between p-4">
+        <div>
+         <p class="font-medium text-gray-900">Botón WhatsApp</p>
+         <p class="text-xs text-gray-500">Flotante de contacto</p>
+        </div>
+        <div class="toggle-switch bg-gray-300" data-option="whatsapp" onclick="toggleOption(this)"></div>
+       </div>
+       <div class="flex items-center justify-between p-4">
+        <div>
+         <p class="font-medium text-gray-900">Botón Telegram</p>
+         <p class="text-xs text-gray-500">Flotante de contacto</p>
+        </div>
+        <div class="toggle-switch bg-gray-300" data-option="telegram" onclick="toggleOption(this)"></div>
+       </div>
+      </div><!-- WhatsApp/Telegram config -->
+      <div id="contactConfig" class="bg-white rounded-xl border border-gray-200 p-4 space-y-3 hidden">
+       <div id="whatsappField" class="hidden">
+        <label class="block text-sm font-medium text-gray-700 mb-1">Número WhatsApp</label> <input type="text" id="whatsappNum" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" placeholder="Ej: 5491123456789">
+       </div>
+       <div id="telegramField" class="hidden">
+        <label class="block text-sm font-medium text-gray-700 mb-1">Usuario Telegram</label> <input type="text" id="telegramUser" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" placeholder="Ej: @usuario">
+       </div>
+      </div>
+     </div>
+    </div><!-- Tab 4: Generar Código -->
+    <div class="tab-panel p-6 hidden" data-panel="4">
+     <div class="max-w-4xl mx-auto space-y-6">
+      <h2 class="text-xl font-bold text-gray-900">Generar Código para Blogger</h2><button onclick="generateCode()" class="w-full py-4 text-white font-bold rounded-xl text-lg hover:opacity-90 transition flex items-center justify-center gap-3" style="background: var(--primary);"> <i data-lucide="code" class="w-6 h-6"></i> GENERAR CÓDIGO BLOGGER </button>
+      <div id="codeOutput" class="hidden">
+       <div class="bg-gray-900 rounded-xl overflow-hidden">
+        <div class="flex items-center justify-between px-4 py-3 bg-gray-800">
+         <span class="text-sm text-gray-400 mono">blogger-course.html</span>
+         <div class="flex gap-2">
+          <button onclick="copyCode()" class="px-3 py-1.5 bg-gray-700 text-gray-200 rounded text-xs hover:bg-gray-600 transition flex items-center gap-1"> <i data-lucide="copy" class="w-3 h-3"></i> Copiar Código </button> <button onclick="downloadCode()" class="px-3 py-1.5 bg-gray-700 text-gray-200 rounded text-xs hover:bg-gray-600 transition flex items-center gap-1"> <i data-lucide="download" class="w-3 h-3"></i> Descargar HTML </button>
+         </div>
+        </div>
+        <pre class="code-output p-4 text-sm text-green-400 mono overflow-x-auto"><code id="generatedCode"></code></pre>
+       </div>
+      </div>
+      <div id="copyToast" class="hidden fixed bottom-6 right-6 bg-gray-900 text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 fade-in">
+       <i data-lucide="check-circle" class="w-5 h-5 text-green-400"></i> Código copiado al portapapeles
+      </div>
+     </div>
+    </div>
+   </main>
+  </div>
+  <script>
+// State
+let blocks = [];
+let blockIdCounter = 0;
+let advancedOptions = { darkMode: false, progressBar: false, sideMenu: false, saveProgress: false, animations: true, whatsapp: false, telegram: false };
+
+// Element SDK
+const defaultConfig = {
+  app_title: 'Constructor Visual de Cursos',
+  background_color: '#f9fafb',
+  surface_color: '#ffffff',
+  text_color: '#111827',
+  primary_color: '#2563eb',
+  secondary_color: '#6b7280'
+};
+
+window.elementSdk.init({
+  defaultConfig,
+  onConfigChange: async (config) => {
+    document.getElementById('appTitle').textContent = config.app_title || defaultConfig.app_title;
+    document.documentElement.style.setProperty('--primary', config.primary_color || defaultConfig.primary_color);
+    document.body.style.background = config.background_color || defaultConfig.background_color;
+  },
+  mapToCapabilities: (config) => ({
+    recolorables: [
+      { get: () => config.background_color || defaultConfig.background_color, set: (v) => { config.background_color = v; window.elementSdk.setConfig({ background_color: v }); }},
+      { get: () => config.surface_color || defaultConfig.surface_color, set: (v) => { config.surface_color = v; window.elementSdk.setConfig({ surface_color: v }); }},
+      { get: () => config.text_color || defaultConfig.text_color, set: (v) => { config.text_color = v; window.elementSdk.setConfig({ text_color: v }); }},
+      { get: () => config.primary_color || defaultConfig.primary_color, set: (v) => { config.primary_color = v; window.elementSdk.setConfig({ primary_color: v }); }},
+      { get: () => config.secondary_color || defaultConfig.secondary_color, set: (v) => { config.secondary_color = v; window.elementSdk.setConfig({ secondary_color: v }); }}
+    ],
+    borderables: [],
+    fontEditable: undefined,
+    fontSizeable: undefined
+  }),
+  mapToEditPanelValues: (config) => new Map([
+    ['app_title', config.app_title || defaultConfig.app_title]
+  ])
+});
+
+// Tab Navigation
+function switchTab(idx) {
+  document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+    btn.classList.toggle('tab-active', i === idx);
+  });
+  document.querySelectorAll('.tab-panel').forEach((panel, i) => {
+    panel.classList.toggle('hidden', i !== idx);
+  });
+  if (idx === 1) renderLivePreview();
+}
+
+// Color
+function updateColor() {
+  const c = document.getElementById('courseColor').value;
+  document.getElementById('courseColorText').value = c;
+  document.documentElement.style.setProperty('--primary', c);
+  updatePreviewGeneral();
+}
+function updateColorFromText() {
+  const c = document.getElementById('courseColorText').value;
+  if (/^#[0-9a-fA-F]{6}$/.test(c)) {
+    document.getElementById('courseColor').value = c;
+    document.documentElement.style.setProperty('--primary', c);
+  }
+  updatePreviewGeneral();
+}
+
+// General Preview
+function updatePreviewGeneral() {
+  const title = document.getElementById('courseTitle').value || 'Título del Curso';
+  const subtitle = document.getElementById('courseSubtitle').value || 'Subtítulo del curso';
+  const instructor = document.getElementById('courseInstructor').value || '—';
+  const btnText = document.getElementById('courseBtnText').value || 'Inscribirme ahora';
+  const img = document.getElementById('courseImage').value;
+  
+  document.getElementById('prevTitle').textContent = title;
+  document.getElementById('prevSubtitle').textContent = subtitle;
+  document.getElementById('prevInstructor').textContent = 'Instructor: ' + instructor;
+  document.getElementById('prevBtn').textContent = btnText;
+  
+  const prevImg = document.getElementById('prevImage');
+  if (img && img.startsWith('https://')) {
+    prevImg.innerHTML = `<img src="${escHtml(img)}" class="w-full h-40 object-cover rounded-xl" loading="lazy" onerror="this.style.display='none'">`;
+  } else {
+    prevImg.innerHTML = '<i data-lucide="book-open" class="w-12 h-12 text-white opacity-60"></i>';
+    lucide.createIcons();
+  }
+}
+
+// Blocks
+function addBlock(type) {
+  const id = ++blockIdCounter;
+  const block = { id, type, title: '', image: '', description: '', video: '', pdf: '', material: '', btnText: '', btnUrl: '', editorContent: '' };
+  
+  if (type === 'module') {
+    const moduleCount = blocks.filter(b => b.type === 'module').length + 1;
+    block.title = 'Módulo ' + moduleCount;
+  } else if (type === 'intro') {
+    block.title = 'Introducción';
+  } else if (type === 'resource') {
+    block.title = 'Recurso Extra';
+    block.btnText = 'Descargar';
+  } else if (type === 'evaluation') {
+    block.title = 'Evaluación Final';
+    block.btnText = 'Realizar evaluación';
+  }
+  
+  blocks.push(block);
+  renderBlocks();
+}
+
+function renderBlocks() {
+  const container = document.getElementById('blocksContainer');
+  if (blocks.length === 0) {
+    container.innerHTML = `<div class="text-center py-12 text-gray-400"><i data-lucide="layers" class="w-8 h-8 mx-auto mb-2 opacity-50"></i><p class="text-sm">Comienza añadiendo bloques</p></div>`;
+    lucide.createIcons();
+    return;
+  }
+  
+  container.innerHTML = blocks.map((block, idx) => {
+    const typeColors = { intro: 'blue', module: 'emerald', resource: 'purple', evaluation: 'amber' };
+    const typeLabels = { intro: 'INTRODUCCIÓN', module: 'MÓDULO', resource: 'RECURSO EXTRA', evaluation: 'EVALUACIÓN' };
+    const color = typeColors[block.type];
+    
+    return `<div class="block-card bg-white rounded-lg p-4 border border-gray-200 fade-in text-sm" data-block-id="${block.id}">
+      <!-- Header -->
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <span class="px-2 py-1 bg-${color}-100 text-${color}-700 text-xs font-bold rounded">${typeLabels[block.type]}</span>
+          <span class="text-xs text-gray-400">#${idx + 1}</span>
+        </div>
+        <div class="flex items-center gap-1">
+          <button onclick="moveBlock(${idx}, -1)" class="p-1.5 hover:bg-gray-100 rounded transition" title="Subir" ${idx === 0 ? 'disabled class="opacity-30"' : ''}><i data-lucide="chevron-up" class="w-4 h-4"></i></button>
+          <button onclick="moveBlock(${idx}, 1)" class="p-1.5 hover:bg-gray-100 rounded transition" title="Bajar" ${idx === blocks.length - 1 ? 'disabled class="opacity-30"' : ''}><i data-lucide="chevron-down" class="w-4 h-4"></i></button>
+          <button onclick="duplicateBlock(${idx})" class="p-1.5 hover:bg-gray-100 rounded transition" title="Duplicar"><i data-lucide="copy" class="w-4 h-4"></i></button>
+          <button onclick="deleteBlock(${idx})" class="p-1.5 hover:bg-red-50 text-red-500 rounded transition" title="Eliminar"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+        </div>
+      </div>
+      
+      <!-- Fields -->
+      <div class="space-y-2.5">
+        <div>
+          <label class="text-xs font-medium text-gray-500">Título</label>
+          <input type="text" value="${escHtml(block.title)}" onchange="updateBlock(${idx}, 'title', this.value)" class="w-full px-3 py-1.5 border border-gray-200 rounded text-xs outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div>
+          <label class="text-xs font-medium text-gray-500">Imagen portada (URL)</label>
+          <input type="text" value="${escHtml(block.image)}" onchange="updateBlock(${idx}, 'image', this.value)" class="w-full px-3 py-1.5 border border-gray-200 rounded text-xs outline-none focus:ring-2 focus:ring-blue-500" placeholder="https://...">
+          ${block.image && block.image.startsWith('https://') ? `<div class="mt-2 h-24 rounded overflow-hidden bg-gray-100"><img src="${escHtml(block.image)}" class="w-full h-full object-cover" loading="lazy" onerror="this.parentElement.innerHTML='<p class=\\'text-center text-xs text-red-400 pt-6\\'>Error cargando imagen</p>'"></div>` : ''}
+        </div>
+        
+        ${block.type === 'intro' || block.type === 'module' ? `
+        <!-- Rich Editor -->
+        <div>
+          <label class="text-xs font-medium text-gray-500">${block.type === 'intro' ? 'Descripción enriquecida' : 'Editor visual'}</label>
+          <div class="border border-gray-200 rounded-lg overflow-hidden mt-1">
+            <div class="editor-toolbar flex flex-wrap gap-0.5 p-2 bg-gray-50 border-b border-gray-200">
+              <button onclick="execCmd('bold')" title="Negrita"><b>B</b></button>
+              <button onclick="execCmd('italic')" title="Cursiva"><i>I</i></button>
+              <button onclick="execCmd('underline')" title="Subrayado"><u>U</u></button>
+              <span class="w-px h-6 bg-gray-300 mx-1 self-center"></span>
+              <button onclick="execBlock('h1', ${idx})" title="H1" class="text-xs font-bold">H1</button>
+              <button onclick="execBlock('h2', ${idx})" title="H2" class="text-xs font-bold">H2</button>
+              <button onclick="execBlock('h3', ${idx})" title="H3" class="text-xs font-bold">H3</button>
+              <span class="w-px h-6 bg-gray-300 mx-1 self-center"></span>
+              <button onclick="execCmd('insertUnorderedList')" title="Lista"><i data-lucide="list" class="w-4 h-4"></i></button>
+              <button onclick="execCmd('insertOrderedList')" title="Lista numerada"><i data-lucide="list-ordered" class="w-4 h-4"></i></button>
+              <span class="w-px h-6 bg-gray-300 mx-1 self-center"></span>
+              <button onclick="insertLink(${idx})" title="Enlace"><i data-lucide="link" class="w-4 h-4"></i></button>
+              <button onclick="insertImage(${idx})" title="Imagen"><i data-lucide="image" class="w-4 h-4"></i></button>
+              <button onclick="insertVideo(${idx})" title="Video"><i data-lucide="video" class="w-4 h-4"></i></button>
+              <button onclick="insertTable(${idx})" title="Tabla"><i data-lucide="table" class="w-4 h-4"></i></button>
+              <span class="w-px h-6 bg-gray-300 mx-1 self-center"></span>
+              <button onclick="execCmd('insertHorizontalRule')" title="Separador"><i data-lucide="minus" class="w-4 h-4"></i></button>
+              <button onclick="insertInfoBox(${idx})" title="Caja informativa" class="text-blue-600"><i data-lucide="info" class="w-4 h-4"></i></button>
+              <button onclick="insertWarningBox(${idx})" title="Caja advertencia" class="text-amber-600"><i data-lucide="alert-triangle" class="w-4 h-4"></i></button>
+            </div>
+            <div contenteditable="true" class="editor-content" id="editor-${block.id}" oninput="updateBlock(${idx}, 'editorContent', this.innerHTML)">${block.editorContent}</div>
+          </div>
+        </div>` : ''}
+        
+        ${block.type !== 'evaluation' ? `
+        <div>
+          <label class="text-xs font-medium text-gray-500">Video YouTube (URL)</label>
+          <input type="text" value="${escHtml(block.video)}" onchange="updateBlock(${idx}, 'video', this.value)" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500" placeholder="https://youtube.com/watch?v=...">
+        </div>
+        <div>
+          <label class="text-xs font-medium text-gray-500">PDF (URL)</label>
+          <input type="text" value="${escHtml(block.pdf)}" onchange="updateBlock(${idx}, 'pdf', this.value)" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500" placeholder="https://...">
+        </div>` : ''}
+        
+        ${block.type === 'module' ? `
+        <div>
+          <label class="text-xs font-medium text-gray-500">Material adicional (URL)</label>
+          <input type="text" value="${escHtml(block.material)}" onchange="updateBlock(${idx}, 'material', this.value)" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500" placeholder="https://...">
+        </div>` : ''}
+        
+        ${block.type === 'resource' ? `
+        <div>
+          <label class="text-xs font-medium text-gray-500">Descripción</label>
+          <textarea onchange="updateBlock(${idx}, 'description', this.value)" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-none" rows="3">${escHtml(block.description)}</textarea>
+        </div>
+        <div>
+          <label class="text-xs font-medium text-gray-500">URL descarga</label>
+          <input type="text" value="${escHtml(block.btnUrl)}" onchange="updateBlock(${idx}, 'btnUrl', this.value)" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500" placeholder="https://...">
+        </div>` : ''}
+        
+        ${block.type === 'evaluation' ? `
+        <div>
+          <label class="text-xs font-medium text-gray-500">Descripción</label>
+          <textarea onchange="updateBlock(${idx}, 'description', this.value)" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-none" rows="3">${escHtml(block.description)}</textarea>
+        </div>
+        <div>
+          <label class="text-xs font-medium text-gray-500">URL formulario</label>
+          <input type="text" value="${escHtml(block.btnUrl)}" onchange="updateBlock(${idx}, 'btnUrl', this.value)" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500" placeholder="https://...">
+        </div>` : ''}
+        
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs font-medium text-gray-500">Texto botón</label>
+            <input type="text" value="${escHtml(block.btnText)}" onchange="updateBlock(${idx}, 'btnText', this.value)" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500" placeholder="Texto del botón">
+          </div>
+          ${block.type !== 'resource' && block.type !== 'evaluation' ? `
+          <div>
+            <label class="text-xs font-medium text-gray-500">URL botón</label>
+            <input type="text" value="${escHtml(block.btnUrl)}" onchange="updateBlock(${idx}, 'btnUrl', this.value)" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500" placeholder="https://...">
+          </div>` : '<div></div>'}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  
+  lucide.createIcons();
+}
+
+function updateBlock(idx, field, value) { blocks[idx][field] = value; }
+function moveBlock(idx, dir) { const ni = idx + dir; if (ni < 0 || ni >= blocks.length) return; [blocks[idx], blocks[ni]] = [blocks[ni], blocks[idx]]; renderBlocks(); }
+function duplicateBlock(idx) { const clone = { ...blocks[idx], id: ++blockIdCounter }; blocks.splice(idx + 1, 0, clone); renderBlocks(); }
+function deleteBlock(idx) { blocks.splice(idx, 1); renderBlocks(); }
+
+// Editor commands
+function execCmd(cmd) { document.execCommand(cmd, false, null); }
+function execBlock(tag, idx) { document.execCommand('formatBlock', false, '<' + tag + '>'); }
+function insertLink(idx) { const url = prompt_inline('URL del enlace:'); if (url) document.execCommand('createLink', false, url); }
+function insertImage(idx) { const url = prompt_inline('URL de la imagen:'); if (url) document.execCommand('insertHTML', false, `<img src="${url}" style="max-width:100%;border-radius:8px;margin:1em 0;" loading="lazy">`); }
+function insertVideo(idx) { const url = prompt_inline('URL del video YouTube:'); if (url) { const vid = extractYouTubeId(url); if (vid) document.execCommand('insertHTML', false, `<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;margin:1em 0;border-radius:8px;"><iframe src="https://www.youtube.com/embed/${vid}" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;" allowfullscreen></iframe></div>`); }}
+function insertTable(idx) { document.execCommand('insertHTML', false, '<table><tr><th>Columna 1</th><th>Columna 2</th><th>Columna 3</th></tr><tr><td>Dato</td><td>Dato</td><td>Dato</td></tr><tr><td>Dato</td><td>Dato</td><td>Dato</td></tr></table>'); }
+function insertInfoBox(idx) { document.execCommand('insertHTML', false, '<div class="info-box">ℹ️ Información importante aquí</div><p></p>'); }
+function insertWarningBox(idx) { document.execCommand('insertHTML', false, '<div class="warning-box">⚠️ Advertencia aquí</div><p></p>'); }
+
+// Inline prompt replacement
+function prompt_inline(msg) {
+  const val = window.prompt(msg);
+  return val;
+}
+// Note: Using window.prompt here as a simple inline input for editor commands
+// In a real deployment, this could be replaced with custom modal
+
+function extractYouTubeId(url) {
+  const m = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&?#]+)/);
+  return m ? m[1] : null;
+}
+
+// Toggle options
+function toggleOption(el) {
+  el.classList.toggle('active');
+  const opt = el.dataset.option;
+  advancedOptions[opt] = el.classList.contains('active');
+  
+  const contactConfig = document.getElementById('contactConfig');
+  const wf = document.getElementById('whatsappField');
+  const tf = document.getElementById('telegramField');
+  
+  if (advancedOptions.whatsapp || advancedOptions.telegram) {
+    contactConfig.classList.remove('hidden');
+  } else {
+    contactConfig.classList.add('hidden');
+  }
+  wf.classList.toggle('hidden', !advancedOptions.whatsapp);
+  tf.classList.toggle('hidden', !advancedOptions.telegram);
+}
+
+// Live Preview
+function renderLivePreview() {
+  const preview = document.getElementById('livePreview');
+  const color = document.getElementById('courseColor').value;
+  const title = document.getElementById('courseTitle').value || 'Mi Curso';
+  const subtitle = document.getElementById('courseSubtitle').value || '';
+  const instructor = document.getElementById('courseInstructor').value || '';
+  const img = document.getElementById('courseImage').value;
+  const btnText = document.getElementById('courseBtnText').value || 'Inscribirme';
+  
+  if (blocks.length === 0) {
+    preview.innerHTML = '<p class="text-center text-gray-500 text-sm">Agrega contenido para ver la vista previa</p>';
+    return;
+  }
+  
+  let html = `<div class="preview-frame p-4" style="font-size:12px;">`;
+  
+  // Header
+  html += `<div style="text-align:center; padding:16px; background:linear-gradient(135deg,${color},${color}dd); border-radius:8px; color:white; margin-bottom:12px;">`;
+  if (img && img.startsWith('https://')) html += `<img src="${escHtml(img)}" style="width:100%;max-height:100px;object-fit:cover;border-radius:6px;margin-bottom:8px;" loading="lazy">`;
+  html += `<h2 style="font-size:14px;font-weight:700;margin:0;">${escHtml(title)}</h2>`;
+  if (subtitle) html += `<p style="opacity:0.9;margin:3px 0 0;font-size:11px;">${escHtml(subtitle)}</p>`;
+  if (instructor) html += `<p style="opacity:0.7;font-size:10px;margin-top:3px;">By ${escHtml(instructor)}</p>`;
+  html += `</div>`;
+  
+  // Blocks
+  blocks.forEach((block) => {
+    html += `<div style="background:white;border:1px solid #e5e7eb;border-radius:6px;padding:12px;margin-bottom:10px;">`;
+    html += `<h3 style="font-size:12px;font-weight:700;color:${color};margin:0 0 8px;">${escHtml(block.title)}</h3>`;
+    if (block.image && block.image.startsWith('https://')) html += `<img src="${escHtml(block.image)}" style="width:100%;border-radius:4px;margin-bottom:8px;max-height:100px;object-fit:cover;" loading="lazy">`;
+    if (block.editorContent) html += `<div style="line-height:1.4;margin-bottom:8px;color:#374151;">${block.editorContent.substring(0, 100)}...</div>`;
+    if (block.description) html += `<p style="color:#6b7280;line-height:1.4;margin:0 0 8px;font-size:11px;">${escHtml(block.description.substring(0, 80))}...</p>`;
+    if (block.video) html += `<p style="color:#2563eb;font-size:10px;margin:4px 0;">▶ Video incluido</p>`;
+    html += `</div>`;
+  });
+  
+  html += `</div>`;
+  preview.innerHTML = html;
+}
+
+// Generate Code
+function generateCode() {
+  const color = document.getElementById('courseColor').value;
+  const title = document.getElementById('courseTitle').value || 'Mi Curso';
+  const subtitle = document.getElementById('courseSubtitle').value || '';
+  const instructor = document.getElementById('courseInstructor').value || '';
+  const img = document.getElementById('courseImage').value;
+  const btnText = document.getElementById('courseBtnText').value || 'Inscribirme';
+  const btnUrl = document.getElementById('courseBtnUrl').value || '#';
+  
+  let code = `<!-- Constructor Visual de Cursos para Blogger -->\n`;
+  code += `<style>\n`;
+  code += `#curso-lms{font-family:'Segoe UI',sans-serif;max-width:780px;margin:0 auto;padding:20px;}\n`;
+  code += `#curso-lms *{box-sizing:border-box;}\n`;
+  code += `#curso-lms .curso-header{text-align:center;padding:40px 20px;background:linear-gradient(135deg,${color},${color}dd);border-radius:16px;color:#fff;margin-bottom:30px;}\n`;
+  code += `#curso-lms .curso-header h1{font-size:2rem;font-weight:700;margin:0;}\n`;
+  code += `#curso-lms .curso-header p{margin:8px 0 0;opacity:0.9;}\n`;
+  code += `#curso-lms .curso-header img{width:100%;max-height:220px;object-fit:cover;border-radius:12px;margin-bottom:16px;}\n`;
+  code += `#curso-lms .curso-btn{display:inline-block;margin-top:16px;padding:12px 32px;background:#fff;color:${color};border-radius:8px;text-decoration:none;font-weight:600;transition:transform 0.2s;}\n`;
+  code += `#curso-lms .curso-btn:hover{transform:scale(1.05);}\n`;
+  code += `#curso-lms .curso-block{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:24px;margin-bottom:20px;}\n`;
+  code += `#curso-lms .curso-block h2{font-size:1.4rem;font-weight:700;color:${color};margin:0 0 16px;}\n`;
+  code += `#curso-lms .curso-block img{width:100%;max-height:200px;object-fit:cover;border-radius:8px;margin-bottom:16px;}\n`;
+  code += `#curso-lms .curso-block .content{line-height:1.7;color:#374151;}\n`;
+  code += `#curso-lms .curso-block .content h1{font-size:1.5rem;font-weight:700;}\n`;
+  code += `#curso-lms .curso-block .content h2{font-size:1.25rem;color:#374151;}\n`;
+  code += `#curso-lms .curso-block .content h3{font-size:1.1rem;color:#374151;}\n`;
+  code += `#curso-lms .curso-block .content .info-box{background:#dbeafe;border-left:4px solid #2563eb;padding:12px;margin:1em 0;border-radius:4px;}\n`;
+  code += `#curso-lms .curso-block .content .warning-box{background:#fef3c7;border-left:4px solid #f59e0b;padding:12px;margin:1em 0;border-radius:4px;}\n`;
+  code += `#curso-lms .curso-block .content table{border-collapse:collapse;width:100%;margin:1em 0;}\n`;
+  code += `#curso-lms .curso-block .content table td,#curso-lms .curso-block .content table th{border:1px solid #d1d5db;padding:8px;}\n`;
+  code += `#curso-lms .block-btn{display:inline-block;margin-top:12px;padding:10px 24px;background:${color};color:#fff;border-radius:8px;text-decoration:none;font-weight:600;}\n`;
+  code += `#curso-lms .pdf-link{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:#fee2e2;color:#dc2626;border-radius:6px;text-decoration:none;font-size:0.9rem;margin-top:8px;}\n`;
+  code += `#curso-lms .video-wrap{position:relative;padding-bottom:56.25%;height:0;overflow:hidden;margin:16px 0;border-radius:8px;}\n`;
+  code += `#curso-lms .video-wrap iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:0;}\n`;
+  
+  if (advancedOptions.darkMode) {
+    code += `#curso-lms.dark-mode{background:#1f2937;color:#f3f4f6;}\n`;
+    code += `#curso-lms.dark-mode .curso-block{background:#374151;border-color:#4b5563;}\n`;
+    code += `#curso-lms.dark-mode .curso-block h2{color:#93c5fd;}\n`;
+  }
+  if (advancedOptions.progressBar) {
+    code += `#curso-lms .progress-bar{height:6px;background:#e5e7eb;border-radius:3px;margin-bottom:20px;overflow:hidden;}\n`;
+    code += `#curso-lms .progress-bar .fill{height:100%;background:${color};border-radius:3px;transition:width 0.3s;}\n`;
+  }
+  if (advancedOptions.animations) {
+    code += `#curso-lms .curso-block{opacity:0;transform:translateY(20px);animation:fadeUp 0.5s ease forwards;}\n`;
+    code += `@keyframes fadeUp{to{opacity:1;transform:translateY(0);}}\n`;
+  }
+  
+  code += `</style>\n\n`;
+  code += `<div id="curso-lms"${advancedOptions.darkMode ? ' class="dark-mode"' : ''}>\n\n`;
+  
+  // Header
+  code += `  <!-- Header del Curso -->\n`;
+  code += `  <div class="curso-header">\n`;
+  if (img) code += `    <img src="${escHtml(img)}" alt="${escHtml(title)}">\n`;
+  code += `    <h1>${escHtml(title)}</h1>\n`;
+  if (subtitle) code += `    <p>${escHtml(subtitle)}</p>\n`;
+  if (instructor) code += `    <p style="opacity:0.7;font-size:0.9rem;">Instructor: ${escHtml(instructor)}</p>\n`;
+  code += `    <a href="${escHtml(btnUrl)}" class="curso-btn" target="_blank" rel="noopener noreferrer">${escHtml(btnText)}</a>\n`;
+  code += `  </div>\n\n`;
+  
+  if (advancedOptions.progressBar) {
+    code += `  <!-- Barra de Progreso -->\n`;
+    code += `  <div class="progress-bar"><div class="fill" id="curso-progress" style="width:0%"></div></div>\n\n`;
+  }
+  
+  // Blocks
+  blocks.forEach((block, i) => {
+    const delay = advancedOptions.animations ? ` style="animation-delay:${i * 0.1}s"` : '';
+    code += `  <!-- ${block.title || block.type} -->\n`;
+    code += `  <div class="curso-block"${delay}>\n`;
+    code += `    <h2>${escHtml(block.title)}</h2>\n`;
+    if (block.image) code += `    <img src="${escHtml(block.image)}" alt="${escHtml(block.title)}">\n`;
+    if (block.editorContent) code += `    <div class="content">${block.editorContent}</div>\n`;
+    if (block.description) code += `    <p style="color:#4b5563;line-height:1.7;">${escHtml(block.description)}</p>\n`;
+    if (block.video) { const vid = extractYouTubeId(block.video); if (vid) code += `    <div class="video-wrap"><iframe src="https://www.youtube.com/embed/${vid}" allowfullscreen></iframe></div>\n`; }
+    if (block.pdf) code += `    <a href="${escHtml(block.pdf)}" class="pdf-link" target="_blank" rel="noopener noreferrer">📄 Ver PDF</a>\n`;
+    if (block.material) code += `    <a href="${escHtml(block.material)}" class="pdf-link" target="_blank" rel="noopener noreferrer" style="background:#dcfce7;color:#16a34a;">📎 Material adicional</a>\n`;
+    if (block.btnText && block.btnUrl) code += `    <a href="${escHtml(block.btnUrl)}" class="block-btn" target="_blank" rel="noopener noreferrer">${escHtml(block.btnText)}</a>\n`;
+    code += `  </div>\n\n`;
+  });
+  
+  // WhatsApp/Telegram
+  if (advancedOptions.whatsapp) {
+    const num = document.getElementById('whatsappNum').value || '';
+    code += `  <!-- WhatsApp -->\n`;
+    code += `  <a href="https://wa.me/${num}" target="_blank" rel="noopener noreferrer" style="position:fixed;bottom:20px;right:20px;width:56px;height:56px;background:#25d366;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,0.2);z-index:999;text-decoration:none;font-size:28px;">💬</a>\n\n`;
+  }
+  if (advancedOptions.telegram) {
+    const user = document.getElementById('telegramUser').value || '';
+    code += `  <!-- Telegram -->\n`;
+    code += `  <a href="https://t.me/${user.replace('@','')}" target="_blank" rel="noopener noreferrer" style="position:fixed;bottom:${advancedOptions.whatsapp ? '90' : '20'}px;right:20px;width:56px;height:56px;background:#0088cc;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,0.2);z-index:999;text-decoration:none;font-size:28px;">✈️</a>\n\n`;
+  }
+  
+  // Progress script
+  if (advancedOptions.saveProgress || advancedOptions.progressBar) {
+    code += `  <script>\n`;
+    if (advancedOptions.progressBar) {
+      code += `    // Barra de progreso\n`;
+      code += `    window.addEventListener('scroll', function() {\n`;
+      code += `      var el = document.getElementById('curso-lms');\n`;
+      code += `      var rect = el.getBoundingClientRect();\n`;
+      code += `      var pct = Math.min(100, Math.max(0, (-rect.top / (rect.height - window.innerHeight)) * 100));\n`;
+      code += `      document.getElementById('curso-progress').style.width = pct + '%';\n`;
+      code += `    });\n`;
+    }
+    if (advancedOptions.saveProgress) {
+      code += `    // Guardar avance\n`;
+      code += `    var blocks = document.querySelectorAll('#curso-lms .curso-block');\n`;
+      code += `    var saved = JSON.parse(localStorage.getItem('curso-progress') || '[]');\n`;
+      code += `    blocks.forEach(function(b, i) {\n`;
+      code += `      if (saved[i]) b.style.opacity = '0.6';\n`;
+      code += `      b.addEventListener('click', function() {\n`;
+      code += `        saved[i] = true; localStorage.setItem('curso-progress', JSON.stringify(saved));\n`;
+      code += `        b.style.opacity = '0.6';\n`;
+      code += `      });\n`;
+      code += `    });\n`;
+    }
+    code += `  <\/script>\n`;
+  }
+  
+  code += `</div>`;
+  
+  document.getElementById('generatedCode').textContent = code;
+  document.getElementById('codeOutput').classList.remove('hidden');
+  lucide.createIcons();
+}
+
+function copyCode() {
+  const code = document.getElementById('generatedCode').textContent;
+  navigator.clipboard.writeText(code).then(() => {
+    const toast = document.getElementById('copyToast');
+    toast.classList.remove('hidden');
+    setTimeout(() => toast.classList.add('hidden'), 3000);
+  });
+}
+
+function downloadCode() {
+  const code = document.getElementById('generatedCode').textContent;
+  const blob = new Blob([code], { type: 'text/html' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'curso-blogger.html';
+  a.click();
+}
+
+// Save/Load
+function saveProject() {
+  const data = {
+    general: {
+      title: document.getElementById('courseTitle').value,
+      subtitle: document.getElementById('courseSubtitle').value,
+      instructor: document.getElementById('courseInstructor').value,
+      image: document.getElementById('courseImage').value,
+      color: document.getElementById('courseColor').value,
+      btnText: document.getElementById('courseBtnText').value,
+      btnUrl: document.getElementById('courseBtnUrl').value
+    },
+    blocks,
+    advancedOptions
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'curso-proyecto.json';
+  a.click();
+}
+
+function loadProject() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json';
+  input.onchange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const data = JSON.parse(ev.target.result);
+        if (data.general) {
+          document.getElementById('courseTitle').value = data.general.title || '';
+          document.getElementById('courseSubtitle').value = data.general.subtitle || '';
+          document.getElementById('courseInstructor').value = data.general.instructor || '';
+          document.getElementById('courseImage').value = data.general.image || '';
+          document.getElementById('courseColor').value = data.general.color || '#2563eb';
+          document.getElementById('courseColorText').value = data.general.color || '#2563eb';
+          document.getElementById('courseBtnText').value = data.general.btnText || '';
+          document.getElementById('courseBtnUrl').value = data.general.btnUrl || '';
+          if (data.general.color) document.documentElement.style.setProperty('--primary', data.general.color);
+        }
+        if (data.blocks) { blocks = data.blocks; blockIdCounter = Math.max(...blocks.map(b => b.id), 0); renderBlocks(); }
+        if (data.advancedOptions) { advancedOptions = data.advancedOptions; }
+        updatePreviewGeneral();
+      } catch (err) { /* invalid file */ }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+function escHtml(str) { return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// Init
+lucide.createIcons();
+</script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a0388232fbf0e013',t:'MTc4MDA4OTI2NQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
