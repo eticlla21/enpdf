@@ -2,132 +2,181 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Constructor de Cursos para Blogger</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Constructor Cursos Blogger V3</title>
 <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
 <style>
-body{font-family:Segoe UI,sans-serif;background:#f4f6f9;margin:0;padding:20px}
-.container{max-width:1200px;margin:auto}
-.card{background:#fff;padding:20px;border-radius:12px;margin-bottom:20px;box-shadow:0 2px 8px rgba(0,0,0,.08)}
-input,textarea,select{width:100%;padding:10px;margin:6px 0;border:1px solid #ccc;border-radius:8px}
-button{padding:10px 15px;border:none;border-radius:8px;cursor:pointer;margin:5px}
-.primary{background:#2563eb;color:#fff}
-.block{border:2px dashed #ccc;padding:15px;margin-top:15px;border-radius:10px}
-#preview{background:#fff;padding:20px;border-radius:12px;min-height:200px}
-#output{width:100%;height:250px}
+body{font-family:Segoe UI,sans-serif;background:#f5f7fb;margin:0;padding:20px}
+.wrap{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.card{background:#fff;padding:16px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.block{border:1px solid #ddd;padding:12px;border-radius:10px;margin:12px 0}
+button{padding:10px 14px;margin:4px;border:none;border-radius:8px;background:#2563eb;color:#fff;cursor:pointer}
+input,select,textarea{width:100%;padding:8px;margin:5px 0;border:1px solid #ccc;border-radius:8px}
+.eval{background:#fffbea;border:2px solid #facc15}
+.preview-module{background:#fff;border-radius:12px;padding:16px;margin:12px 0}
+.preview-module img{max-width:100%;border-radius:10px}
+iframe{width:100%}
+@media(max-width:900px){.wrap{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
-<div class="container">
 <div class="card">
-<h1>Constructor de Cursos para Blogger</h1>
+<h1>Constructor de Cursos Blogger V3</h1>
 <input id="courseTitle" placeholder="Título del curso">
 <input id="courseSubtitle" placeholder="Subtítulo">
-<input id="instructor" placeholder="Instructor">
+<button onclick="addBlock('Introducción')">+ Introducción</button>
+<button onclick="addBlock('Módulo')">+ Módulo</button>
+<button onclick="addBlock('Recurso Extra')">+ Recurso Extra</button>
+<button onclick="addBlock('Evaluación Final')">+ Evaluación Final</button>
+<button onclick="generateCode()">Generar Código Blogger</button>
 </div>
 
+<div class="wrap">
 <div class="card">
-<button class="primary" onclick="addBlock('Introducción')">+ Introducción</button>
-<button class="primary" onclick="addBlock('Módulo')">+ Módulo</button>
-<button class="primary" onclick="addBlock('Recurso Extra')">+ Recurso Extra</button>
-<button class="primary" onclick="addBlock('Evaluación Final')">+ Evaluación Final</button>
+<h2>Configuración</h2>
 <div id="blocks"></div>
+<textarea id="output" style="height:250px"></textarea>
 </div>
 
 <div class="card">
 <h2>Vista previa</h2>
 <div id="preview"></div>
 </div>
-
-<div class="card">
-<button class="primary" onclick="generateCode()">Generar Código Blogger</button>
-<button onclick="copyCode()">Copiar Código</button>
-<textarea id="output"></textarea>
-</div>
 </div>
 
-<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
 <script>
-let count=0;
+let counter=0;
+
+function ytEmbed(url){
+ if(!url) return '';
+ let id='';
+ let m=url.match(/(?:v=|youtu\.be\/)([^&]+)/);
+ if(m) id=m[1];
+ return id ? 'https://www.youtube.com/embed/'+id : url;
+}
 
 function addBlock(type){
- const div=document.createElement('div');
- div.className='block';
- div.innerHTML=`
+ let d=document.createElement('div');
+ d.className='block '+(type==='Evaluación Final'?'eval':'');
+ d.innerHTML=`
  <h3>${type}</h3>
+ <input class="type" value="${type}" readonly>
  <input class="title" placeholder="Título">
- <input class="image" placeholder="URL Imagen portada">
- <div id="editor${count}" style="height:150px"></div>
- <input class="video" placeholder="URL Video">
+ <input class="image" placeholder="URL imagen portada">
+ <div id="ed${counter}" style="height:120px"></div>
+ <input class="video" placeholder="URL video Youtube">
  <input class="pdf" placeholder="URL PDF">
- `;
- document.getElementById('blocks').appendChild(div);
+ <div class="evalFields" style="display:${type==='Evaluación Final'?'block':'none'}">
+ <input class="formurl" placeholder="URL Google Forms">
+ <select class="formmode">
+ <option value="embed">Incrustado</option>
+ <option value="button">Botón externo</option>
+ </select>
+ <input class="formheight" value="900">
+ <label><input type="checkbox" class="cert" checked> Mostrar aviso certificación</label>
+ </div>`;
+ document.getElementById('blocks').appendChild(d);
 
- let q=new Quill('#editor'+count,{
- theme:'snow',
- modules:{toolbar:[
- [{'header':[1,2,3,false]}],
- ['bold','italic','underline'],
- [{'list':'ordered'},{'list':'bullet'}],
- ['link','image']
- ]}
- });
-
- div.quill=q;
- count++;
+ let q=new Quill('#ed'+counter,{theme:'snow'});
+ d.quill=q;
+ counter++;
  q.on('text-change',updatePreview);
- div.querySelectorAll('input').forEach(x=>x.addEventListener('input',updatePreview));
+ d.querySelectorAll('input,select').forEach(e=>e.addEventListener('input',updatePreview));
  updatePreview();
 }
 
 function updatePreview(){
- let html=`<h1>${courseTitle.value||'Curso'}</h1>`;
- html+=`<h3>${courseSubtitle.value||''}</h3>`;
+ let h='<h1>'+(courseTitle.value||'Curso')+'</h1><h3>'+(courseSubtitle.value||'')+'</h3>';
 
  document.querySelectorAll('.block').forEach(b=>{
-   html+=`<hr><h2>${b.querySelector('.title').value||'Sin título'}</h2>`;
-   let img=b.querySelector('.image').value;
-   if(img) html+=`<img src="${img}" style="max-width:100%;border-radius:10px">`;
-   html+=b.quill.root.innerHTML;
+  let type=b.querySelector('.type').value;
+  h+=`<div class="preview-module ${type==='Evaluación Final'?'eval':''}">`;
+  h+=`<h2>${b.querySelector('.title').value||type}</h2>`;
+
+  let img=b.querySelector('.image').value;
+  if(img) h+=`<img src="${img}">`;
+
+  h+=b.quill.root.innerHTML;
+
+  let v=b.querySelector('.video').value;
+  if(v) h+=`<iframe height="315" src="${ytEmbed(v)}"></iframe>`;
+
+  let pdf=b.querySelector('.pdf').value;
+  if(pdf) h+=`<p>📄 PDF configurado</p>`;
+
+  if(type==='Evaluación Final'){
+    let form=b.querySelector('.formurl').value;
+    let mode=b.querySelector('.formmode').value;
+
+    if(form){
+      if(mode==='embed'){
+        let emb=form.includes('?')?form+'&embedded=true':form+'?embedded=true';
+        h+=`<iframe src="${emb}" height="500"></iframe>`;
+      }else{
+        h+=`<button>Realizar Evaluación</button>`;
+      }
+    }
+
+    if(b.querySelector('.cert').checked){
+      h+=`<div style="background:#fff8e1;padding:12px;border-left:4px solid orange">
+      La evaluación no garantiza la certificación. Revise los requisitos indicados.
+      </div>`;
+    }
+  }
+
+  h+='</div>';
  });
 
- document.getElementById('preview').innerHTML=html;
+ document.getElementById('preview').innerHTML=h;
 }
 
 courseTitle.oninput=updatePreview;
 courseSubtitle.oninput=updatePreview;
 
 function generateCode(){
- let code=`<div class="curso-blogger">`;
- code+=`<h1>${courseTitle.value}</h1>`;
- code+=`<h3>${courseSubtitle.value}</h3>`;
+ let code='<div class="curso-blogger">';
+ code+='<h1>'+courseTitle.value+'</h1><h3>'+courseSubtitle.value+'</h3>';
 
  document.querySelectorAll('.block').forEach(b=>{
-   code+=`<section>`;
-   code+=`<h2>${b.querySelector('.title').value}</h2>`;
+  let type=b.querySelector('.type').value;
+  code+='<section><h2>'+b.querySelector('.title').value+'</h2>';
 
-   let img=b.querySelector('.image').value;
-   if(img) code+=`<img src="${img}" style="max-width:100%">`;
+  let img=b.querySelector('.image').value;
+  if(img) code+='<img src="'+img+'" style="max-width:100%">';
 
-   code+=b.quill.root.innerHTML;
+  code+=b.quill.root.innerHTML;
 
-   let video=b.querySelector('.video').value;
-   if(video) code+=`<p><a href="${video}" target="_blank">Ver Video</a></p>`;
+  let v=b.querySelector('.video').value;
+  if(v) code+='<iframe width="100%" height="315" src="'+ytEmbed(v)+'"></iframe>';
 
-   let pdf=b.querySelector('.pdf').value;
-   if(pdf) code+=`<p><a href="${pdf}" target="_blank">Abrir PDF</a></p>`;
+  let pdf=b.querySelector('.pdf').value;
+  if(pdf) code+='<p><a href="'+pdf+'" target="_blank">Abrir PDF</a></p>';
 
-   code+=`</section>`;
+  if(type==='Evaluación Final'){
+    let form=b.querySelector('.formurl').value;
+    let mode=b.querySelector('.formmode').value;
+    let ht=b.querySelector('.formheight').value||900;
+
+    if(form){
+      if(mode==='embed'){
+        let emb=form.includes('?')?form+'&embedded=true':form+'?embedded=true';
+        code+='<iframe src="'+emb+'" width="100%" height="'+ht+'"></iframe>';
+      }else{
+        code+='<a href="'+form+'" target="_blank">Realizar Evaluación</a>';
+      }
+    }
+
+    if(b.querySelector('.cert').checked){
+      code+='<div>La evaluación no garantiza la certificación. Revise los requisitos establecidos.</div>';
+    }
+  }
+
+  code+='</section>';
  });
 
- code+=`</div>`;
- document.getElementById('output').value=code;
-}
-
-function copyCode(){
- output.select();
- document.execCommand('copy');
- alert('Código copiado');
+ code+='</div>';
+ output.value=code;
 }
 </script>
 </body>
